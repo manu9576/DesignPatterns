@@ -9,7 +9,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using System.Threading;
 
@@ -29,7 +28,7 @@ namespace EventAggregator
         /// </summary>
         /// <typeparam name="TEventType"></typeparam>
         /// <param name="eventToPublish"></param>
-        public void PublishEvent(object eventToPublish)
+        public void PublishEvent<TEventType>(TEventType eventToPublish)
         {
             var subsriberType = typeof(ISubscriber<>).MakeGenericType(eventToPublish.GetType());
 
