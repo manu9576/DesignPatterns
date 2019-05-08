@@ -1,4 +1,4 @@
-﻿ ﻿/*
+﻿/*
 * Gautham Prabhu K 2014
 * Copyright (c) 2014  gautham.prabhu.se@gmail.com
 * All rights reserved.
@@ -7,9 +7,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace EventAggregator
 {
@@ -19,6 +16,4 @@ namespace EventAggregator
 
         void SubsribeEvent(Object subscriber);
     }
-
-   
 }
