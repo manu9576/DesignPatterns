@@ -1,15 +1,6 @@
-﻿ ﻿/*
-* Gautham Prabhu K 2014
-* Copyright (c) 2014  gautham.prabhu.se@gmail.com
-* All rights reserved.
-* No warranty of any kind implied or otherwise.
-* 
-*/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using System.Threading;
 
 namespace EventAggregator
@@ -17,9 +8,29 @@ namespace EventAggregator
     public class EventAggregator : IEventAggregator
     {
 
-        private Dictionary<Type, List<WeakReference>> eventSubsribers = new Dictionary<Type, List<WeakReference>>();
+        private static EventAggregator _instance;
+
+        private readonly Dictionary<Type, List<WeakReference>> _eventSubsribers;
         
-        private readonly object lockSubscriberDictionary = new object();
+        private readonly object _lockSubscriberDictionary;
+
+        private EventAggregator()
+        {
+            _lockSubscriberDictionary = new object();
+            _eventSubsribers = new Dictionary<Type, List<WeakReference>>();
+        }
+
+        public static IEventAggregator Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new EventAggregator();
+                }
+                return _instance;
+            }
+        }
 
         #region IEventAggregator Members              
 
@@ -47,25 +58,19 @@ namespace EventAggregator
                 else
                 {
                     subsribersToBeRemoved.Add(weakSubsriber);
-
-                }//End-if-else (weakSubsriber.IsAlive)
-
-            }//End-for-each (var weakSubriber in subscribers)
-
+                }
+            }
 
             if (subsribersToBeRemoved.Any())
             {
-                lock (lockSubscriberDictionary)
+                lock (_lockSubscriberDictionary)
                 {
                     foreach (var remove in subsribersToBeRemoved)
                     {
                         subscribers.Remove(remove);
-
-                    }//End-for-each (var remove in subsribersToBeRemoved)
-
-                }//End-lock (lockSubscriberDictionary)
-
-            }//End-if (subsribersToBeRemoved.Any())
+                    }
+                }
+            }
         }
      
         /// <summary>
@@ -74,7 +79,7 @@ namespace EventAggregator
         /// <param name="subscriber"></param>
         public void SubsribeEvent(object subscriber)
         {
-            lock (lockSubscriberDictionary)
+            lock (_lockSubscriberDictionary)
             {
                 var subsriberTypes = subscriber.GetType().GetInterfaces()
                                         .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscriber<>));
@@ -86,13 +91,9 @@ namespace EventAggregator
                     List<WeakReference> subscribers = GetSubscriberList(subsriberType);
 
                     subscribers.Add(weakReference);
-
-                }//End-for-each (var subsriberType in subsriberTypes)
-
-            }//End-lock (lockSubscriberDictionary)
+                }
+            }
         }
-
-      
 
         #endregion
 
@@ -106,7 +107,7 @@ namespace EventAggregator
             {
                 syncContext = new SynchronizationContext();
 
-            }//End-if (syncContext == null)
+            }
 
             syncContext.Post(s => subscriber.OnEventHandler(eventToPublish), null);
         }
@@ -115,9 +116,9 @@ namespace EventAggregator
         {
             List<WeakReference> subsribersList = null;
 
-            lock (lockSubscriberDictionary)
+            lock (_lockSubscriberDictionary)
             {
-                bool found = this.eventSubsribers.TryGetValue(subsriberType, out subsribersList);
+                bool found = this._eventSubsribers.TryGetValue(subsriberType, out subsribersList);
 
                 if (!found)
                 {
@@ -125,12 +126,10 @@ namespace EventAggregator
 
                     subsribersList = new List<WeakReference>();
 
-                    this.eventSubsribers.Add(subsriberType, subsribersList);
+                    this._eventSubsribers.Add(subsriberType, subsribersList);
 
-                }//End-if (!found)
-
-            }//End-lock (lockSubscriberDictionary)
-
+                }
+            }
             return subsribersList;
         }
     }

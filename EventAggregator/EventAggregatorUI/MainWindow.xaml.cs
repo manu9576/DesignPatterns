@@ -1,29 +1,6 @@
-﻿ ﻿/*
-* Gautham Prabhu K 2014
-* Copyright (c) 2014  gautham.prabhu.se@gmail.com
-* All rights reserved.
-* No warranty of any kind implied or otherwise.
-* 
-*/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
-using System.Collections.ObjectModel;
-
 using EventAggregator;
-using EventAggregatorUI.Events;
 
 namespace EventAggregatorUI
 {
@@ -40,10 +17,9 @@ namespace EventAggregatorUI
 
             InitializeComponent();
 
-            this.ea = new EventAggregator.EventAggregator();
+            ea = EventAggregator.EventAggregator.Instance;
 
-            this.ItemListView.EventAggregator = this.ea;
-
+            ItemListView.EventAggregator = this.ea;
 
             var tabs = this.ItemView.Items;
 
