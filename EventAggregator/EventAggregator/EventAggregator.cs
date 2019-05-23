@@ -7,11 +7,10 @@ namespace EventAggregator
 {
     public class EventAggregator : IEventAggregator
     {
-
         private static EventAggregator _instance;
 
         private readonly Dictionary<Type, List<WeakReference>> _eventSubsribers;
-        
+
         private readonly object _lockSubscriberDictionary;
 
         private EventAggregator()
@@ -32,7 +31,7 @@ namespace EventAggregator
             }
         }
 
-        #region IEventAggregator Members              
+        #region IEventAggregator Members
 
         /// <summary>
         /// Publish an event
@@ -41,17 +40,17 @@ namespace EventAggregator
         /// <param name="eventToPublish"></param>
         public void PublishEvent<TEventType>(TEventType eventToPublish)
         {
-            var subsriberType = typeof(ISubscriber<>).MakeGenericType(eventToPublish.GetType());
+            Type subsriberType = typeof(ISubscriber<>).MakeGenericType(eventToPublish.GetType());
 
-            var subscribers = GetSubscriberList(subsriberType);
+            List<WeakReference> subscribers = GetSubscriberList(subsriberType);
 
             List<WeakReference> subsribersToBeRemoved = new List<WeakReference>();
 
-            foreach (var weakSubsriber in subscribers)
+            foreach (WeakReference weakSubsriber in subscribers)
             {
                 if (weakSubsriber.IsAlive)
                 {
-                    var subscriber = (ISubscriber<TEventType>)weakSubsriber.Target;
+                    ISubscriber<TEventType> subscriber = (ISubscriber<TEventType>)weakSubsriber.Target;
 
                     InvokeSubscriberEvent<TEventType>(eventToPublish, subscriber);
                 }
@@ -65,14 +64,14 @@ namespace EventAggregator
             {
                 lock (_lockSubscriberDictionary)
                 {
-                    foreach (var remove in subsribersToBeRemoved)
+                    foreach (WeakReference remove in subsribersToBeRemoved)
                     {
                         subscribers.Remove(remove);
                     }
                 }
             }
         }
-     
+
         /// <summary>
         /// Subribe to an event.
         /// </summary>
@@ -81,12 +80,12 @@ namespace EventAggregator
         {
             lock (_lockSubscriberDictionary)
             {
-                var subsriberTypes = subscriber.GetType().GetInterfaces()
+                IEnumerable<Type> subsriberTypes = subscriber.GetType().GetInterfaces()
                                         .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscriber<>));
 
                 WeakReference weakReference = new WeakReference(subscriber);
 
-                foreach (var subsriberType in subsriberTypes)
+                foreach (Type subsriberType in subsriberTypes)
                 {
                     List<WeakReference> subscribers = GetSubscriberList(subsriberType);
 
@@ -95,18 +94,17 @@ namespace EventAggregator
             }
         }
 
-        #endregion
+        #endregion IEventAggregator Members
 
         private void InvokeSubscriberEvent<TEventType>(TEventType eventToPublish, ISubscriber<TEventType> subscriber)
         {
-            //Synchronize the invocation of method 
+            //Synchronize the invocation of method
 
             SynchronizationContext syncContext = SynchronizationContext.Current;
 
             if (syncContext == null)
             {
                 syncContext = new SynchronizationContext();
-
             }
 
             syncContext.Post(s => subscriber.OnEventHandler(eventToPublish), null);
@@ -127,7 +125,6 @@ namespace EventAggregator
                     subsribersList = new List<WeakReference>();
 
                     this._eventSubsribers.Add(subsriberType, subsribersList);
-
                 }
             }
             return subsribersList;
