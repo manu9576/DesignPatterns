@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EventAggregator
 {
@@ -140,7 +141,10 @@ namespace EventAggregator
 
         public void Unsubscribe(Action<T> action)
         {
-
+            if (_eventSubsribers.Any(wr => wr.Target == action))
+            {
+                _eventSubsribers.RemoveAll(wr => wr.Target == action);
+            }
         }
     }
 }

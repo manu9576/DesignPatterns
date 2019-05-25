@@ -8,7 +8,7 @@ namespace EventAggregatorTest
     public class EventAggregatorTest
     {
         [TestMethod]
-        public void TestMethod1()
+        public void PublishesEventToSubscriber()
         {
             string response =string.Empty;
 
@@ -20,6 +20,21 @@ namespace EventAggregatorTest
 
         }
 
+        [TestMethod]
+        public void DoesntPublishEventToUnsubscriberAction()
+        {
+            string response = string.Empty;
+
+            Action<object> action = ((str) => response = str.ToString());
+
+            EventAggregator.EventAggregator.GetInstance<StringEvent>().Subscribe(action);
+            EventAggregator.EventAggregator.GetInstance<StringEvent>().Unsubscribe(action);
+
+            EventAggregator.EventAggregator.GetInstance<StringEvent>().Publish("Test");
+
+            Assert.AreEqual(string.Empty, response);
+
+        }
 
         private class StringEvent : TEventType<object> { }
         
