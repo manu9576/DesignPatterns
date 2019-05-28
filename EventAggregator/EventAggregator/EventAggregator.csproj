@@ -41,7 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventAggregator.cs" />
-    <Compile Include="ITEventType.cs" />
+    <Compile Include="EventBase.cs" />
+    <Compile Include="IEventAggregator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TEventType.cs" />
   </ItemGroup>

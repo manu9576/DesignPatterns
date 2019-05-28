@@ -3,18 +3,32 @@ using System.Collections.Generic;
 
 namespace EventAggregator
 {
-    public static class EventAggregator
+    public class EventAggregator : IEventAggregator
     {
-        private static Dictionary<Type,ITEventType<object>> _eventTypes = new Dictionary<Type, ITEventType<object>>();
+        private Dictionary<Type, EventBase> _eventTypes = new Dictionary<Type, EventBase>();
+        private static EventAggregator _instance;
 
-        public static T GetInstance<T>() where T : ITEventType<object> , new()
+        public static EventAggregator GetInstance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new EventAggregator();
+                }
+
+                return _instance;
+            }
+        }
+
+        public T GetEvent<T>() where T : EventBase, new()
         {
             if (!_eventTypes.ContainsKey(typeof(T)))
             {
                 _eventTypes.Add(typeof(T), new T());
             }
 
-            return (T)_eventTypes[typeof(T)] ;
+            return (T)_eventTypes[typeof(T)];
         }
     }
 }
