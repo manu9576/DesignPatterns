@@ -1,6 +1,6 @@
-﻿using System;
-using EventAggregator;
+﻿using EventAggregator;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace EventAggregatorTest
 {
@@ -10,14 +10,13 @@ namespace EventAggregatorTest
         [TestMethod]
         public void PublishesEventToSubscriber()
         {
-            string response =string.Empty;
+            string response = string.Empty;
 
-            EventAggregator.EventAggregator.GetInstance<StringEvent>().Subscribe((str) => response = str.ToString());
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((str) => response = str.ToString());
 
-            EventAggregator.EventAggregator.GetInstance<StringEvent>().Publish("Test");
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
 
             Assert.AreEqual("Test", response);
-
         }
 
         [TestMethod]
@@ -27,16 +26,14 @@ namespace EventAggregatorTest
 
             Action<object> action = ((str) => response = str.ToString());
 
-            EventAggregator.EventAggregator.GetInstance<StringEvent>().Subscribe(action);
-            EventAggregator.EventAggregator.GetInstance<StringEvent>().Unsubscribe(action);
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe(action);
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Unsubscribe(action);
 
-            EventAggregator.EventAggregator.GetInstance<StringEvent>().Publish("Test");
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
 
             Assert.AreEqual(string.Empty, response);
-
         }
 
-        private class StringEvent : TEventType<object> { }
-        
+        private class StringEvent : TEventType<string> { }
     }
 }
