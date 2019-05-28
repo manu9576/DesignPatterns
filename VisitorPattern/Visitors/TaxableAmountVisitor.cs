@@ -31,5 +31,4 @@ namespace Visitors
             TaxableAmount -= annualInvestment.InvestmentAmmount;
         }
     }
-
 }

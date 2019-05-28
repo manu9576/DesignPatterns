@@ -23,12 +23,12 @@ namespace Visitors
 
         public void Visit(AnnualInvestment annualInvestment)
         {
-            // do nothing  
+            // do nothing
         }
 
         public void Visit(MonthlyExpense monthlyExpense)
         {
-            //do nothing  
+            //do nothing
         }
     }
 }

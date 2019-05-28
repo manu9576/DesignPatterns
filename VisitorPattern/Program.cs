@@ -5,9 +5,9 @@ using Visitors;
 
 namespace VisitorPattern
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Employee emp = new Employee
             {
@@ -43,13 +43,13 @@ namespace VisitorPattern
             double NetEarningoftheYear = 0.0;
             double TaxableAmount = 0.0;
 
-            foreach (var salary in emp.Salaries)
+            foreach (Interfaces.ISalary salary in emp.Salaries)
             {
-                switch(salary.GetType().Name)
+                switch (salary.GetType().Name)
                 {
                     case nameof(MonthlySalary_Earning):
 
-                        var monthlySalary_Earning = salary as MonthlySalary_Earning;
+                        MonthlySalary_Earning monthlySalary_Earning = salary as MonthlySalary_Earning;
                         NetEarningoftheYear += (monthlySalary_Earning.BasicSalary + monthlySalary_Earning.ConveyanceAllowance + monthlySalary_Earning.FoodCard_Bill + monthlySalary_Earning.HRAExemption + monthlySalary_Earning.MedicalAllowance + monthlySalary_Earning.OtherBills + monthlySalary_Earning.PersonalAllowance + monthlySalary_Earning.TelephoneBill);
                         TaxableAmount += (monthlySalary_Earning.BasicSalary + monthlySalary_Earning.HRAExemption + monthlySalary_Earning.MedicalAllowance + monthlySalary_Earning.PersonalAllowance);
 
@@ -57,7 +57,7 @@ namespace VisitorPattern
 
                     case nameof(MonthlySalary_Deduction):
 
-                        var monthlySalary_Deduction = salary as MonthlySalary_Deduction;
+                        MonthlySalary_Deduction monthlySalary_Deduction = salary as MonthlySalary_Deduction;
                         NetEarningoftheYear -= (monthlySalary_Deduction.ProvidentFund_EmployeeContribution + monthlySalary_Deduction.ProvidentFund_EmployerContribution + monthlySalary_Deduction.ProfessionTax + monthlySalary_Deduction.OtherDeduction);
                         TaxableAmount -= (monthlySalary_Deduction.ProvidentFund_EmployeeContribution + monthlySalary_Deduction.ProvidentFund_EmployerContribution + monthlySalary_Deduction.ProfessionTax + monthlySalary_Deduction.OtherDeduction);
 
@@ -65,19 +65,18 @@ namespace VisitorPattern
 
                     case nameof(MonthlyExpense):
 
-                        var monthlyExpense = salary as MonthlyExpense;
+                        MonthlyExpense monthlyExpense = salary as MonthlyExpense;
                         TaxableAmount -= monthlyExpense.MonthlyRent;
 
                         break;
 
                     case nameof(AnnualInvestment):
 
-                        var annualInvestment = salary as AnnualInvestment;
+                        AnnualInvestment annualInvestment = salary as AnnualInvestment;
                         TaxableAmount -= annualInvestment.InvestmentAmmount;
 
                         break;
                 }
-
             }
 
             Console.WriteLine("Annual Net Earning Amount : {0}", NetEarningoftheYear);

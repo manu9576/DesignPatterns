@@ -11,6 +11,5 @@ namespace Interfaces
         void Visit(MonthlyExpense monthlyExpense);
 
         void Visit(AnnualInvestment annualInvestment);
-
     }
 }

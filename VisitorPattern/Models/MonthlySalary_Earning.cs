@@ -63,5 +63,4 @@ namespace Models
             visitor.Visit(this);
         }
     }
-    
 }
