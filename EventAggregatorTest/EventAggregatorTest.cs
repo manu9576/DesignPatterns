@@ -15,7 +15,18 @@ namespace EventAggregatorTest
             public string Message { get; set; }
             public List<int> ListInt { get; set; }
         }
+
         private class ObjectEvent : TEventType<ObjectEventArgs> { }
+
+        private class TestObject
+        {
+            public string String { get; set; }
+
+            public void Method(string str)
+            {
+                String = str;
+            }
+        }
 
         [TestMethod]
         public void PublishdEventRaisesAction()
@@ -27,6 +38,12 @@ namespace EventAggregatorTest
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
 
             Assert.AreEqual("Test", response);
+        }
+
+        [TestMethod]
+        public void PublishesEventWithNoSubscriberDontRaiseEvent()
+        {
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
         }
 
         [TestMethod]
@@ -54,9 +71,8 @@ namespace EventAggregatorTest
             string response2 = string.Empty;
             string response3 = string.Empty;
 
-            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((str) => response1 = str.ToString());        
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((str) => response1 = str.ToString());
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
-
 
             Assert.AreEqual("Test", response1);
             Assert.AreEqual(string.Empty, response2);
@@ -69,7 +85,6 @@ namespace EventAggregatorTest
             Assert.AreEqual("Test", response1);
             Assert.AreEqual("Test", response2);
             Assert.AreEqual(string.Empty, response3);
-
 
             response1 = string.Empty;
             response2 = string.Empty;
@@ -98,7 +113,7 @@ namespace EventAggregatorTest
 
         [TestMethod]
         public void RaisesActionWithObject()
-            {
+        {
             ObjectEventArgs response = null;
 
             ObjectEventArgs raisedEvent = new ObjectEventArgs
@@ -108,10 +123,29 @@ namespace EventAggregatorTest
             };
 
             EventAggregator.EventAggregator.GetInstance.GetEvent<ObjectEvent>().Subscribe((obj) => response = obj);
-            
+
             EventAggregator.EventAggregator.GetInstance.GetEvent<ObjectEvent>().Publish(raisedEvent);
 
             Assert.AreSame(raisedEvent, response);
+        }
+
+        [TestMethod]
+        public void SubscribedObjectDontKeepAliveRef()
+        {
+            WeakReference wk = new WeakReference(new TestObject());
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((wk.Target as TestObject).Method);
+
+            Assert.AreNotEqual("Test", (wk.Target as TestObject).String);
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
+
+            Assert.AreEqual("Test", (wk.Target as TestObject).String);
+            Assert.IsTrue(wk.IsAlive);
+
+            GC.Collect();
+
+            Assert.IsFalse(wk.IsAlive);
         }
     }
 }
