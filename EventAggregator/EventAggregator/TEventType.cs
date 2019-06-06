@@ -33,7 +33,10 @@ namespace EventAggregator
         {
             WeakReference weakReference = new WeakReference(action);
 
-            _eventSubsribers.Add(weakReference);
+            if (_eventSubsribers.All(wr => (wr.Target as Action<T>) != action))
+            {
+                _eventSubsribers.Add(weakReference);
+            }
         }
 
         public void Unsubscribe(Action<T> action)
