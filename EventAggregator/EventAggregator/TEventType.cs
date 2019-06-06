@@ -41,9 +41,11 @@ namespace EventAggregator
 
         public void Unsubscribe(Action<T> action)
         {
-            if (_eventSubsribers.Any(wr => wr.Target as Action<T> == action))
+            var weakReferenceToRemove = _eventSubsribers.FirstOrDefault(wr => wr.Target as Action<T> == action);
+
+            if (weakReferenceToRemove != null)
             {
-                _eventSubsribers.RemoveAll(wr => wr.Target as Action<T> == action);
+                _eventSubsribers.Remove(weakReferenceToRemove);
             }
         }
     }
