@@ -41,7 +41,7 @@ namespace EventAggregatorTest
         }
 
         [TestMethod]
-        public void PublishesEventWithNoSubscriberDontRaiseEvent()
+        public void PublishesEventWithNoSubscriberDoesntRaiseException()
         {
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
         }
@@ -97,7 +97,7 @@ namespace EventAggregatorTest
         }
 
         [TestMethod]
-        public void DoesntRaiseActionIfUnsubscribe()
+        public void DoesntRaiseActionIfActionIsUnsubscribed()
         {
             string response = string.Empty;
 
@@ -105,14 +105,35 @@ namespace EventAggregatorTest
 
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe(action);
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Unsubscribe(action);
-
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
 
             Assert.AreEqual(string.Empty, response);
         }
 
         [TestMethod]
-        public void RaisesActionWithObject()
+        public void UnsubscribesActionThatNotBeSubscribeDoesNotThrowException()
+        {
+            string response = string.Empty;
+            Action<string> action = ((str) => response = str);
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Unsubscribe(action);
+        }
+
+        [TestMethod]
+        public void ActionCanBeSubscribeOnlyOneTime()
+        {
+            int count= 0;
+            Action<string> action = ((str) => count++);
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe(action);
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe(action);
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("string");
+
+            Assert.AreEqual(1, count);
+        }
+
+        [TestMethod]
+        public void RaisedEventWithObjectIsPublished()
         {
             ObjectEventArgs response = null;
 
@@ -132,6 +153,8 @@ namespace EventAggregatorTest
         [TestMethod]
         public void SubscribedObjectDontKeepAliveRef()
         {
+            TestObject testObject = new TestObject();
+
             WeakReference wk = new WeakReference(new TestObject());
 
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((wk.Target as TestObject).Method);
