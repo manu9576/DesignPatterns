@@ -2,6 +2,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Windows;
 
 namespace EventAggregatorTest
 {
@@ -122,7 +124,7 @@ namespace EventAggregatorTest
         [TestMethod]
         public void ActionCanBeSubscribeOnlyOneTime()
         {
-            int count= 0;
+            int count = 0;
             Action<string> action = ((str) => count++);
 
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe(action);
@@ -153,8 +155,6 @@ namespace EventAggregatorTest
         [TestMethod]
         public void SubscribedObjectDontKeepAliveRef()
         {
-            TestObject testObject = new TestObject();
-
             WeakReference wk = new WeakReference(new TestObject());
 
             EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((wk.Target as TestObject).Method);
@@ -169,6 +169,62 @@ namespace EventAggregatorTest
             GC.Collect();
 
             Assert.IsFalse(wk.IsAlive);
+        }
+
+        [TestMethod]
+        public void SubscritionOnBackgroundIsExecutedOnBackground()
+        {
+            string response = string.Empty;
+            bool IsBackground = false;
+            Thread currentThread = Thread.CurrentThread;
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((str) =>
+            {
+                response = str;
+                IsBackground = Thread.CurrentThread.IsBackground && currentThread != Thread.CurrentThread;
+            }, ThreadOptions.BackgroundThread);
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
+
+            Assert.IsTrue(SpinWait.SpinUntil(() => response != string.Empty, 1000), "The event hasn't been published");
+            Assert.IsTrue(IsBackground, "The event hasn't been published on background thread");
+        }
+
+        [TestMethod]
+        public void SubscritionOnExecutionThreadIsExecutedOnCurrentThread()
+        {
+            string response = string.Empty;
+            bool IsCurrentThread = false;
+            Thread currentThread = Thread.CurrentThread;
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((str) =>
+            {
+                response = str;
+                IsCurrentThread = currentThread == Thread.CurrentThread;
+            }, ThreadOptions.PublisherThread);
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
+
+            Assert.IsTrue(SpinWait.SpinUntil(() => response != string.Empty, 1000), "The event hasn't been published");
+            Assert.IsTrue(IsCurrentThread, "The event hasn't been published on current thread");
+        }
+
+        [TestMethod]
+        public void SubscritionOnUiThreadIsExecutedOnUiThread()
+        {
+            string response = string.Empty;
+            bool IsCurrentThread = false;
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Subscribe((str) =>
+            {
+                response = str;
+                IsCurrentThread = Application.Current.Dispatcher.Thread == Thread.CurrentThread;
+            }, ThreadOptions.UIThread);
+
+            EventAggregator.EventAggregator.GetInstance.GetEvent<StringEvent>().Publish("Test");
+
+            Assert.IsTrue(SpinWait.SpinUntil(() => response != string.Empty, 1000), "The event hasn't been published");
+            Assert.IsTrue(IsCurrentThread, "The event hasn't been published on current thread");
         }
     }
 }
