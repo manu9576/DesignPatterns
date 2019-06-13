@@ -15,18 +15,23 @@ namespace EventAggregator
         public TEventType()
         {
             _lockSubscriberDictionary = new object();
-            _eventSubsribers = new List<Tuple<WeakReference,ThreadOptions>>();
+            _eventSubsribers = new List<Tuple<WeakReference, ThreadOptions>>();
+
+            if (null == Application.Current)
+            {
+                new Application();
+            }
         }
 
         public void Publish(T eventToPublish)
         {
-            foreach (var sub in _eventSubsribers)
+            foreach (Tuple<WeakReference, ThreadOptions> sub in _eventSubsribers)
             {
                 if (sub.Item1.IsAlive)
                 {
                     Action<T> action = sub.Item1.Target as Action<T>;
 
-                    switch(sub.Item2)
+                    switch (sub.Item2)
                     {
                         case ThreadOptions.PublisherThread:
                             action.Invoke(eventToPublish);
@@ -37,9 +42,8 @@ namespace EventAggregator
                             break;
 
                         case ThreadOptions.BackgroundThread:
-
-                            var bw = new BackgroundWorker();
-                            bw.DoWork += (_,__) =>
+                            BackgroundWorker bw = new BackgroundWorker();
+                            bw.DoWork += (_, __) =>
                             {
                                 action.Invoke(eventToPublish);
                             };
@@ -56,13 +60,13 @@ namespace EventAggregator
 
             if (!_eventSubsribers.Any(wr => (wr.Item1.Target as Action<T>) == action))
             {
-                _eventSubsribers.Add(new Tuple<WeakReference,ThreadOptions>( weakReference, threadOption));
+                _eventSubsribers.Add(new Tuple<WeakReference, ThreadOptions>(weakReference, threadOption));
             }
         }
 
         public void Unsubscribe(Action<T> action)
         {
-            var weakReferenceToRemove = _eventSubsribers.FirstOrDefault(wr => wr.Item1.Target as Action<T> == action);
+            Tuple<WeakReference, ThreadOptions> weakReferenceToRemove = _eventSubsribers.FirstOrDefault(wr => wr.Item1.Target as Action<T> == action);
 
             if (weakReferenceToRemove != null)
             {
