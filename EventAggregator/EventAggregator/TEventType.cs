@@ -38,7 +38,7 @@ namespace EventAggregator
                             break;
 
                         case ThreadOptions.UIThread:
-                            Application.Current.Dispatcher.BeginInvoke(action, eventToPublish);
+                            Application.Current.Dispatcher.Invoke(action, eventToPublish);
                             break;
 
                         case ThreadOptions.BackgroundThread:
